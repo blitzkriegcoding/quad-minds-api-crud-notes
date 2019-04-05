@@ -10,14 +10,11 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
-import DeleteIcon from '@material-ui/icons/Delete';
-import CreateIcon from '@material-ui/icons/Create';
+import Button from '@material-ui/core/Button';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
-import red from '@material-ui/core/colors/red';
-import blue from '@material-ui/core/colors/blue';
 import axios from 'axios'
 import config from '../config/config';
 
@@ -117,29 +114,16 @@ const styles = theme => ({
     marginTop: '4%',
     width: 'auto'    
   },
+  button: {
+    margin: theme.spacing.unit,
+  },  
   table: {
     minWidth: 500,
     maxWidth: 'auto',
   },
   tableWrapper: {
     overflowX: 'auto',
-  },
-  iconEdit: {
-    margin: theme.spacing.unit,
-    fontSize: 32,
-    cursor: 'pointer',    
-    '&:hover': {
-      color: blue[300]
-    },    
-  },  
-  iconDelete: {
-    margin: theme.spacing.unit,
-    fontSize: 32,
-    cursor: 'pointer',
-    '&:hover': {
-      color: red[300],
-    },    
-  }  
+  }
 });
 
 class NotesTable extends React.Component {
@@ -152,7 +136,7 @@ class NotesTable extends React.Component {
     }
   }
 
-  updateNote = (noteId, payload) => {
+  updateNote(noteId, payload){
     axios.put(config.baseUrl + `${noteId}`, payload)
       .then(response => {
         this.setRecords();
@@ -160,7 +144,7 @@ class NotesTable extends React.Component {
       .catch(error => console.log(error));    
   }
 
-  deleteNote = (noteId) => {
+  deleteNote(noteId){
     axios.delete(config.baseUrl + `${noteId}`)
       .then(response => {        
         this.setRecords();
@@ -172,10 +156,11 @@ class NotesTable extends React.Component {
     this.setRecords();
   }
   setRecords = () => {
+    console.log(this.state.records)
     axios.get(config.baseUrl)
       .then(response => {        
         this.setState({
-          rows: response.status == 200 ? response.data.sort((a, b) => (a.id > b.id ? -1 : 1)) : []
+          rows: response.status === 200 ? response.data.sort((a, b) => (a.id > b.id ? -1 : 1)) : []
         });
       })
       .catch(error => console.log(error));
@@ -213,8 +198,20 @@ class NotesTable extends React.Component {
                   </TableCell>
                   <TableCell align="justify">{row.title}</TableCell>
                   <TableCell align="justify">{row.content}</TableCell>
-                  <TableCell align="justify"><CreateIcon className={classes.iconEdit} color="primary"/></TableCell>
-                  <TableCell align="justify"> <DeleteIcon className={classes.iconDelete} color="error"/></TableCell>
+                  <TableCell align="justify"> 
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      className={classes.button}>
+                        Edit
+                    </Button></TableCell>
+                  <TableCell align="justify">
+                    <Button 
+                      variant="contained" 
+                      color="secondary" 
+                      className={classes.button} onClick={ () => this.deleteNote(row.id)}>
+                        Delete
+                    </Button></TableCell>
                 </TableRow>
               ))}
               {emptyRows > 0 && (

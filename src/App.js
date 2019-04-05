@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-
 import BodyGridContainer from './components/BodyGridContainer';
 import './App.css';
 
