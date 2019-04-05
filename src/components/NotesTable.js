@@ -11,6 +11,12 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
@@ -35,6 +41,7 @@ const CustomTableCell = withStyles(theme => ({
     fontSize: 14,
   },
 }))(TableCell);
+
 
 class TablePaginationActions extends React.Component {
   handleFirstPageButtonClick = event => {
@@ -132,19 +139,29 @@ class NotesTable extends React.Component {
     this.state = {
       rows: [],
       page: 0,
-      rowsPerPage: 5           
+      rowsPerPage: 5,
+      open: false,
+      id: '',
+      title: '',
+      content: ''
     }
   }
 
-  updateNote(noteId, payload){
-    axios.put(config.baseUrl + `${noteId}`, payload)
+  openDialogEdit = (row) => {
+    console.log(row);
+    this.setState({open: true, id: row.id, title: row.title, content: row.content});    
+  }
+
+  updateNote = (id, payload) => {    
+    axios.put(config.baseUrl + `${id}`, payload)
       .then(response => {
+        this.setState({ open: false, id: "", title: "", content: ""});
         this.setRecords();
       })
       .catch(error => console.log(error));    
   }
 
-  deleteNote(noteId){
+  deleteNote = (noteId) => {
     axios.delete(config.baseUrl + `${noteId}`)
       .then(response => {        
         this.setRecords();
@@ -155,8 +172,7 @@ class NotesTable extends React.Component {
   componentDidMount = () => {
     this.setRecords();
   }
-  setRecords = () => {
-    console.log(this.state.records)
+  setRecords = () => {    
     axios.get(config.baseUrl)
       .then(response => {        
         this.setState({
@@ -171,6 +187,26 @@ class NotesTable extends React.Component {
 
   handleChangeRowsPerPage = event => {
     this.setState({ page: 0, rowsPerPage: event.target.value });
+  };
+
+  handleClickOpen = () => {
+    this.setState({ open: true });
+  };
+
+  handleCloseWithoutChanges = () => {    
+    this.setState({ open: false, id: "", title: "", content: ""});
+        
+  };  
+  handleCloseWithChanges = () => {    
+    let recordToEdit = {       
+      title: this.state.title, 
+      content: this.state.content
+    }
+    this.updateNote(this.state.id, recordToEdit);
+  };
+
+  handleChange = name => event => {
+    this.setState({ [name]: event.target.value });
   };
 
   render() {
@@ -202,14 +238,14 @@ class NotesTable extends React.Component {
                     <Button 
                       variant="contained" 
                       color="primary" 
-                      className={classes.button}>
+                      className={classes.button} onClick={() => this.openDialogEdit(row)}>
                         Edit
                     </Button></TableCell>
                   <TableCell align="justify">
                     <Button 
                       variant="contained" 
                       color="secondary" 
-                      className={classes.button} onClick={ () => this.deleteNote(row.id)}>
+                      className={classes.button} onClick={() => this.deleteNote(row.id)}>
                         Delete
                     </Button></TableCell>
                 </TableRow>
@@ -239,6 +275,48 @@ class NotesTable extends React.Component {
             </TableFooter>
           </Table>
         </div>
+        <Dialog
+          open={this.state.open}
+          onClose={this.handleClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Edit record # {this.state.id}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              To subscribe to this website, please enter your email address here. We will send
+              updates occasionally.
+            </DialogContentText>
+            <TextField
+              
+              margin="dense"
+              id="title"
+              label="Title"
+              type="text"
+              value={this.state.title}
+              onChange={this.handleChange('title')}
+              fullWidth
+            />
+
+            <TextField
+              
+              margin="dense"
+              id="content"
+              label="Content"
+              type="text"
+              fullWidth
+              value={this.state.content}
+              onChange={this.handleChange('content')}
+            />            
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleCloseWithoutChanges} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.handleCloseWithChanges} color="primary">
+              Subscribe
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     );
   }
