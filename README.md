@@ -27,7 +27,7 @@ Antes de inicializar las pruebasm, es necesaria la instalación de los paquetes 
 
 El el directorio del proyecto, ejecute:
 
-### `npm start` + enter
+`npm start` + enter
 
 Ejecuta la aplicación en modo desarrollo.<br>
 Abrir [http://localhost:3000](http://localhost:3000) para verlo en el navegador
