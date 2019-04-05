@@ -118,9 +118,14 @@ const styles = theme => ({
   root: {
     marginLeft: '2%',
     marginRight: '2%',    
-    marginTop: '4%',
+    marginTop: '2%',
     width: 'auto'    
   },
+  newNoteButton: {
+    marginLeft: '2%',
+    marginRight: '2%',    
+    marginTop: '4%'      
+  },  
   button: {
     margin: theme.spacing.unit,
   },  
@@ -152,6 +157,16 @@ class NotesTable extends React.Component {
     this.setState({open: true, id: row.id, title: row.title, content: row.content});    
   }
 
+
+
+  createNote = (payload) => {
+    axios.post(config.baseUrl, payload)
+      .then(response => {
+        this.setState({ open: false, id: "", title: "", content: ""});
+        this.setRecords();
+      })
+      .catch(error => console.log(error));    
+  };
   updateNote = (id, payload) => {    
     axios.put(config.baseUrl + `${id}`, payload)
       .then(response => {
@@ -159,7 +174,7 @@ class NotesTable extends React.Component {
         this.setRecords();
       })
       .catch(error => console.log(error));    
-  }
+  };
 
   deleteNote = (noteId) => {
     axios.delete(config.baseUrl + `${noteId}`)
@@ -167,7 +182,7 @@ class NotesTable extends React.Component {
         this.setRecords();
       })
       .catch(error => console.log(error));    
-  }
+  };
 
   componentDidMount = () => {
     this.setRecords();
@@ -198,11 +213,15 @@ class NotesTable extends React.Component {
         
   };  
   handleCloseWithChanges = () => {    
-    let recordToEdit = {       
+    let record = {       
       title: this.state.title, 
       content: this.state.content
     }
-    this.updateNote(this.state.id, recordToEdit);
+    if(this.state.id !== ''){
+      this.updateNote(this.state.id, record);
+    } else {
+      this.createNote(record);      
+    }
   };
 
   handleChange = name => event => {
@@ -215,109 +234,116 @@ class NotesTable extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
     return (
-      <Paper className={classes.root}>
-        <div className={classes.tableWrapper}>
-          <Table className={classes.table}>
-            <TableHead>
-              <TableRow>
-                <CustomTableCell>Note ID</CustomTableCell>
-                <CustomTableCell align="center">Title</CustomTableCell>
-                <CustomTableCell align="center">Content</CustomTableCell>
-                <CustomTableCell colSpan={2}  align="center" >Actions</CustomTableCell>                
-              </TableRow>
-            </TableHead>          
-            <TableBody>
-              {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                <TableRow key={row.id}>
-                  <TableCell component="th" scope="row">
-                    {row.id}
-                  </TableCell>
-                  <TableCell align="justify">{row.title}</TableCell>
-                  <TableCell align="justify">{row.content}</TableCell>
-                  <TableCell align="justify"> 
-                    <Button 
-                      variant="contained" 
-                      color="primary" 
-                      className={classes.button} onClick={() => this.openDialogEdit(row)}>
-                        Edit
-                    </Button></TableCell>
-                  <TableCell align="justify">
-                    <Button 
-                      variant="contained" 
-                      color="secondary" 
-                      className={classes.button} onClick={() => this.deleteNote(row.id)}>
-                        Delete
-                    </Button></TableCell>
+      <div>  
+        <Paper className={classes.root}>
+          <div className={classes.tableWrapper}>
+            <Table className={classes.table}>
+              <TableHead>
+                <TableRow>
+                  <CustomTableCell>Note ID</CustomTableCell>
+                  <CustomTableCell align="center">Title</CustomTableCell>
+                  <CustomTableCell align="center">Content</CustomTableCell>
+                  <CustomTableCell colSpan={2}  align="center" >Actions</CustomTableCell>                
                 </TableRow>
-              ))}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 48 * emptyRows }}>
-                  <TableCell colSpan={6} />
+              </TableHead>          
+              <TableBody>
+                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                  <TableRow key={row.id}>
+                    <TableCell component="th" scope="row">
+                      {row.id}
+                    </TableCell>
+                    <TableCell align="justify">{row.title}</TableCell>
+                    <TableCell align="justify">{row.content}</TableCell>
+                    <TableCell align="justify"> 
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        className={classes.button} onClick={() => this.openDialogEdit(row)}>
+                          Edit
+                      </Button></TableCell>
+                    <TableCell align="justify">
+                      <Button 
+                        variant="contained" 
+                        color="secondary" 
+                        className={classes.button} onClick={() => this.deleteNote(row.id)}>
+                          Delete
+                      </Button></TableCell>
+                  </TableRow>
+                ))}
+                {emptyRows > 0 && (
+                  <TableRow style={{ height: 48 * emptyRows }}>
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    colSpan={3}
+                    count={rows.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    SelectProps={{
+                      native: true,
+                    }}
+                    onChangePage={this.handleChangePage}
+                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    ActionsComponent={TablePaginationActionsWrapped}
+                  />
                 </TableRow>
-              )}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TablePagination
-                  rowsPerPageOptions={[5, 10, 25]}
-                  colSpan={3}
-                  count={rows.length}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  onChangePage={this.handleChangePage}
-                  onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                  ActionsComponent={TablePaginationActionsWrapped}
-                />
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
-        <Dialog
-          open={this.state.open}
-          onClose={this.handleClose}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">Edit record # {this.state.id}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              To subscribe to this website, please enter your email address here. We will send
-              updates occasionally.
-            </DialogContentText>
-            <TextField
-              
-              margin="dense"
-              id="title"
-              label="Title"
-              type="text"
-              value={this.state.title}
-              onChange={this.handleChange('title')}
-              fullWidth
-            />
+              </TableFooter>
+            </Table>
+          </div>
+          <Dialog
+            open={this.state.open}
+            onClose={this.handleClose}
+            aria-labelledby="form-dialog-title"
+          >
+            <DialogTitle id="form-dialog-title">{this.state.id === '' ? 'Add new note' : `Edit record # ${this.state.id}`}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                To subscribe to this website, please enter your email address here. We will send
+                updates occasionally.
+              </DialogContentText>
+              <TextField
+                
+                margin="dense"
+                id="title"
+                label="Title"
+                type="text"
+                value={this.state.title}
+                onChange={this.handleChange('title')}
+                fullWidth
+              />
 
-            <TextField
-              
-              margin="dense"
-              id="content"
-              label="Content"
-              type="text"
-              fullWidth
-              value={this.state.content}
-              onChange={this.handleChange('content')}
-            />            
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleCloseWithoutChanges} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={this.handleCloseWithChanges} color="primary">
-              Subscribe
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Paper>
+              <TextField
+                
+                margin="dense"
+                id="content"
+                label="Content"
+                type="text"
+                fullWidth
+                value={this.state.content}
+                onChange={this.handleChange('content')}
+              />            
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.handleCloseWithoutChanges} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={this.handleCloseWithChanges} color="primary">
+                {this.state.id === '' ? 'Save new note' : `Edit note # ${this.state.id}`}
+              </Button>
+            </DialogActions>
+          </Dialog>     
+        </Paper>         
+       <Button color="primary" variant="outlined" className={classes.newNoteButton} onClick={this.handleClickOpen}>
+          Add new note
+        </Button>         
+      </div>
+
+
     );
   }
 }
